@@ -59,8 +59,6 @@ public class TestsBT {
 		GraphPath<Vertex1, Edge1> r = rr.path();
 		
 		
-		System.out.println("Voraz = "+r.getWeight()+"  == "+Solucion1.of(r));
-		
 		BT<Vertex1, Edge1, Solucion1> bta = BT.of(graph,
 				Solucion1::of, null, null, true);
 
@@ -80,6 +78,6 @@ public class TestsBT {
 //				v -> GraphColors.colorIf(Color.red, Vertex1.goal().test(v)),
 //				e -> GraphColors.colorIf(Color.red, bta.optimalPath.getEdgeList().contains(e)));
 
-	}
+		}
 	}
 }

@@ -5,9 +5,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import javax.print.attribute.HashPrintServiceAttributeSet;
-
-import us.lsi.common.IntegerSet;
 import us.lsi.common.List2;
 
 public record Vertex1I(Integer indice, Set<Integer> candSel, Integer presRest, Set<String> cualidadesCub) implements Vertex1  {
@@ -27,22 +24,34 @@ public record Vertex1I(Integer indice, Set<Integer> candSel, Integer presRest, S
 	
 	public Boolean goalHasSolution() {
 		//Tiene solución si todas las cualidades han sido cubiertas 
-		Set<String> s = new HashSet<>(cualidadesCub); 
-		s.removeAll(Datos1.getCualidades());
+		Set<String> s = new HashSet<>(Datos1.getCualidades()); 
+		Set <String> cc = new HashSet<> (cualidadesCub);
+		s.removeAll(cc);
+		Boolean c2  = false; 
+		for(Integer a: candSel) { 
+			for(Integer b: candSel) { 
+				c2 = Datos1.getSonIncompatibles(b, a) || Datos1.getSonIncompatibles(a, b); 
+				if(c2) return false; 
+			}
+		}
+		
 		return s.isEmpty(); 
 	}
 	@Override
 	public List<Integer> actions() {
 		// TODO Auto-generated method stub
 		if (indice == Datos1.getNumCandidatos()) return List.of();
+
 		List<Integer> lBool = List2.of(0);
 		/*Si el sueldo del candidato no me supera el presupuesto restante
 		y no es incompatible con ninguna otro candidato que ya haya contratado*/
 		Boolean c = Datos1.getSueldoMin(indice) <= this.presRest &&
-				this.candSel.stream().noneMatch(i -> Datos1.getSonIncompatibles(this.indice(), i));
+				this.candSel.stream()
+				.noneMatch(i -> Datos1.getSonIncompatibles(this.indice(), i) && Datos1.getSonIncompatibles(i, this.indice()));
 		if (c) 	//Si se me cumplen ambas condiciones, añadimos 'true'
 			lBool.add(1);
 		return lBool;
+		
 	}
 	
 	@Override

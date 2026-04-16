@@ -50,7 +50,7 @@ public class TestsAStar {
 				
 				GraphPath<Vertex1, Edge1> gp = aStar.search().get();
 				
-				List<Boolean> gp_as = gp.getEdgeList().stream().map(x -> x.action())
+				List<Integer> gp_as = gp.getEdgeList().stream().map(x -> x.action())
 						.collect(Collectors.toList()); // getEdgeList();
 				
 				

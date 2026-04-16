@@ -73,8 +73,8 @@ public class TestsBT {
 					
 					System.out.println("Sol opt = "+sv);
 
-					var outGraph = bta.outGraph();
-					if(outGraph!=null)
+					//var outGraph = bta.outGraph();
+				/*if(outGraph!=null)
 						GraphColors.toDot(bta.outGraph(),"ficheros_generados/p4/ejemplo2/subconjuntosBTGraph.gv",
 							v->v.toGraph(),
 							e->e.action().toString(),
@@ -82,6 +82,6 @@ public class TestsBT {
 							e->GraphColors.colorIf(Color.red,le.contains(e))
 							);
 					
-				}
+				}*/
 			}
 }	
