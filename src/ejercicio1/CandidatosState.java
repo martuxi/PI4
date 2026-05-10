@@ -1,9 +1,8 @@
 package ejercicio1;
 
 import java.util.ArrayList;
-import java.util.List;
 
-import us.lsi.common.List2;
+import java.util.List;
 
 public class CandidatosState {
 	
@@ -64,7 +63,7 @@ public class CandidatosState {
 	}
 	
 	public Boolean esSolucion() {
-		return actual.cualidadesCubiertas().size() == Datos1.getNumCualidades();
+		return actual.goal() && actual.hasSolution();
 	}
 	
 	public Solucion1 getSolucion() {

@@ -9,14 +9,14 @@ import java.util.stream.IntStream;
 
 import us.lsi.common.List2;
 
-public record Vertex3I (Integer indice, Integer sumaTotRest, Integer nConsec, List<Integer> camino) implements Vertex3 {
+public record Vertex3I (Integer indice, Double durAcum, Integer nConsec, List<Integer> camino) implements Vertex3 {
 
-	public static Vertex3 of(Integer i, Integer sumaTotRest, Integer nConsec, List<Integer> camino) {
-		return new Vertex3I(i,sumaTotRest,nConsec,camino);
+	public static Vertex3 of(Integer i, Double duraAcum, Integer nConsec, List<Integer> camino) {
+		return new Vertex3I(i,duraAcum,nConsec,camino);
 	}
-	
+
 	public static Vertex3 start() {
-		return Vertex3I.of(0, (int) Datos3.maxTime.intValue(),0, new ArrayList<Integer>());
+		return Vertex3I.of(0, Datos3.maxTime, 0, new ArrayList<Integer>());
 	}
 	@Override
 	public List<Integer> actions() {
@@ -27,36 +27,27 @@ public record Vertex3I (Integer indice, Integer sumaTotRest, Integer nConsec, Li
 			return l;
 		}
 		
-		Integer ultVert = camino.getLast();
 		if (indice == Datos3.N) {
 			return List2.empty();
 		}
 		
+		Integer ultVert = camino.getLast();
 		Set<Integer> porVisitarAux = IntStream.range(0, Datos3.N).boxed().collect(Collectors.toSet());
 		porVisitarAux.removeAll(this.camino());
 		
 		List <Integer> ls = Datos3.g2.edgesOf(ultVert).stream()
 				.map(e -> e.otherVertex(ultVert))
 				.filter(x -> porVisitarAux.contains(x))
-				.filter(x -> this.sumaTotRest>=Datos3.grafo.getEdge(Datos3.g2.getVertex(ultVert), Datos3.getVertex(x)).tiempo())
+				.filter(x -> Datos3.grafo.getEdge(Datos3.g2.getVertex(ultVert), Datos3.getVertex(x)).tiempo() <= this.durAcum)
 				.collect(Collectors.toList());
-		if (indice == Datos3.N-1 && ls.size() ==1 && !Datos3.grafo.containsEdge(Datos3.getVertex(ultVert), Datos3.getVertex(0))) {
+		if (indice == Datos3.N-1 && ls.size() ==1 && !Datos3.grafo.containsEdge(Datos3.getVertex(ls.get(0)), Datos3.getVertex(0))) {
 			return List.of();
 		}
 		return ls;
 	}
 
 	public Boolean goalHasSolution() {
-		return this.indice == Datos3.N && this.nConsec >=2 && this.sumaTotRest == 0;
-	}
-	
-	private static final Random r = new Random();
-	public Integer greedyAction() {
-		
-		List <Integer> actions = this.actions();
-		Integer n = actions.size();
-		return actions.get(r.nextInt(n));
-		
+		return this.indice == Datos3.N && this.nConsec >= 2 && this.durAcum >= 0.0;
 	}
 	
 	public Boolean goal() {
@@ -68,12 +59,11 @@ public record Vertex3I (Integer indice, Integer sumaTotRest, Integer nConsec, Li
 		List<Integer> caminoAux = List2.copy(camino);
 		caminoAux.add(a);
 		Integer ultVert = null;
-		if (!camino.isEmpty()) ultVert = camino.getLast();
-		Integer sumaTotRestAux = this.sumaTotRest;
+		if (camino.isEmpty()==false) ultVert = camino.getLast();
+		Double sumaTotRestAux = this.durAcum;
 		Integer nConsecAux = this.nConsec;
 		if (ultVert != null) {
-			//NO FUNCIONA EL DATOS3.GRAFO.GETVERTEX()
-			//sumaTotRestAux = sumaTotRestAux - (int) Datos3.grafo.getEdge(Datos3.grafo.getVertex(a),Datos3.grafo.getVertex(a)).tiempo();
+			sumaTotRestAux = sumaTotRestAux - Datos3.grafo.getEdge(Datos3.g2.getVertex(ultVert),Datos3.g2.getVertex(a)).tiempo();
 		}
 		nConsecAux++;
 		return Vertex3I.of(indice+1,sumaTotRestAux,nConsecAux,caminoAux);
@@ -84,9 +74,9 @@ public record Vertex3I (Integer indice, Integer sumaTotRest, Integer nConsec, Li
 		// TODO Auto-generated method stub
 		return Edge3.of(this,this.neighbor(a),a);
 	}
-	@Override
-	public List<Integer> camino() {
-		return this.camino;
+	
+	public String toGraph() {
+		return String.format("%d", indice);
 	}
 
 	

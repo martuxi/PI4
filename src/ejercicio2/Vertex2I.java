@@ -8,16 +8,16 @@ import java.util.stream.IntStream;
 
 import us.lsi.common.List2;
 
-public record Vertex2I(Integer indice, List <Integer> capRest) implements Vertex2{
+public record Vertex2I(Integer indice, List <Integer> tamañoContenedores, List<Integer> contenedoresCompletos) implements Vertex2{
 	
 	public static Vertex2I start() {
 		//Creamos una lista con los tamaños de los distintos contenedores 
 		List <Integer> capRest = IntStream.range(0, Datos2.getNumContenedores()).boxed().map(x -> Datos2.getTamContenedor(x)).toList();
-		return new Vertex2I(0,capRest);
+		return new Vertex2I(0,capRest,new ArrayList<Integer> ());
 	}
 	
-	public static Vertex2I of(Integer i, List <Integer> cpR) {
-		return new Vertex2I(i,cpR);
+	public static Vertex2I of(Integer i, List <Integer> cpR, List <Integer> contComp) {
+		return new Vertex2I(i,cpR, contComp);
 	}
 	
 	public Boolean goal() {
@@ -26,13 +26,13 @@ public record Vertex2I(Integer indice, List <Integer> capRest) implements Vertex
 	}
 	
 	public List <Integer> capRest() {
-		return List.copyOf(this.capRest);
+		return List.copyOf(this.tamañoContenedores);
 	}
 	
 	public List<Integer> contenedoresCompletos() {
 		List <Integer> l = new ArrayList <> ();
-		for (int i = 0; i < capRest.size(); i++) {
-			if (capRest.get(i) == 0) {
+		for (int i = 0; i < tamañoContenedores.size(); i++) {
+			if (tamañoContenedores.get(i) == 0) {
 				l.add(i);
 			}
 		}
@@ -41,7 +41,7 @@ public record Vertex2I(Integer indice, List <Integer> capRest) implements Vertex
 	}
 	public Boolean hasSolution() {
 		//Tendrá solución si hemos llenado todos los contenedores 
-		 return this.capRest.size() ==0;
+		 return this.tamañoContenedores.size() ==0;
 	}
 
 	
@@ -71,12 +71,14 @@ public record Vertex2I(Integer indice, List <Integer> capRest) implements Vertex
 	}
 	
 	@Override
-	public Vertex2 neighbor(Integer a) {
-		// TODO Auto-generated method stub
-		List<Integer> capRest2 = List2.copy(capRest);
-		capRest2.set(a, capRest.get(a) - Datos2.getTamElemento(indice));
-		Vertex2I r = Vertex2I.of(indice+1, capRest2); 
-		return r;
+	public Vertex2I neighbor(Integer a) {
+		List<Integer> capRest2 = List2.copy(tamañoContenedores);
+		capRest2.set(a, capRest2.get(a) - Datos2.getTamElemento(indice));
+		List<Integer> newContenedoresCompletos = new ArrayList<>(contenedoresCompletos);
+		if (capRest2.get(a) == 0) {
+			newContenedoresCompletos.add(a);
+		}
+		return Vertex2I.of(indice + 1, capRest2, newContenedoresCompletos);
 	}
 
 	@Override
@@ -85,21 +87,4 @@ public record Vertex2I(Integer indice, List <Integer> capRest) implements Vertex
 		return Edge2.of(this, this.neighbor(a), a);
 	}
 
-	@Override
-	public Integer getTamContenedor() {
-		// TODO Auto-generated method stub
-		return this.getTamContenedor();
-	}
-
-	@Override
-	public Integer getTamElemento() {
-		// TODO Auto-generated method stub
-		return this.getTamElemento();
-	}
-
-	@Override
-	public Boolean getPuedeUbicarse() {
-		// TODO Auto-generated method stub
-		return this.getPuedeUbicarse();
-	}	
 }

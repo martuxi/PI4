@@ -59,16 +59,16 @@ public class TestsBT {
 					if (conVoraz) {
 						GreedyOnGraph<Vertex2, Edge2> ga = GreedyOnGraph.of(graph);
 						gp = ga.search();
-						if (gp.isPresent()) sv = Solucion2.create(gp.get());
+						if (gp.isPresent()) sv = Solucion2.of(gp.get());
 						System.out.println("Sv = "+sv);
 					}
 					if(gp.isPresent()) 
-						bta = BT.of(graph,Solucion2::create,gp.get().getWeight(),gp.get(),true);
+						bta = BT.of(graph,Solucion2::of,gp.get().getWeight(),gp.get(),true);
 					else 
 						bta = BT.of(graph, null, null, null, true);
 					bta.search();
 					
-					sv = Solucion2.create(bta.optimalPath().orElse(null));
+					sv = Solucion2.of(bta.optimalPath().orElse(null));
 					List<Edge2> le = bta.optimalPath().get().getEdgeList();
 					
 					System.out.println("Sol opt = "+sv);
@@ -84,4 +84,5 @@ public class TestsBT {
 					
 				}*/
 			}
-}	
+	}
+}

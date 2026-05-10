@@ -8,13 +8,9 @@ public interface Vertex2 extends VirtualVertex<Vertex2, Edge2, Integer> {
 	
 	Integer indice();
 	
-	Integer getTamContenedor();
+	List<Integer> contenedoresCompletos();
 	
-	Integer getTamElemento();
-	
-	Boolean getPuedeUbicarse();
-	
-	List <Integer> contenedoresCompletos();
+	List<Integer> tamañoContenedores();
 	
 	
 

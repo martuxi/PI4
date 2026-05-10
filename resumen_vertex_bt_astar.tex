@@ -1,0 +1,324 @@
+\documentclass[12pt, a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{hyperref}
+\usepackage{amsmath}
+
+% Colores
+\definecolor{codebg}{RGB}{245,245,245}
+\definecolor{codeframe}{RGB}{200,200,200}
+\definecolor{keywordcolor}{RGB}{0,0,180}
+\definecolor{commentcolor}{RGB}{80,130,80}
+\definecolor{stringcolor}{RGB}{160,0,0}
+\definecolor{accentblue}{RGB}{30,90,160}
+\definecolor{accentgreen}{RGB}{30,130,80}
+\definecolor{accentred}{RGB}{160,40,40}
+\definecolor{tabheader}{RGB}{230,237,245}
+
+% Estilo de código Java
+\lstdefinestyle{java}{
+  language=Java,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{codeframe},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{keywordcolor}\bfseries,
+  commentstyle=\color{commentcolor}\itshape,
+  stringstyle=\color{stringcolor},
+  breaklines=true,
+  breakatwhitespace=true,
+  showstringspaces=false,
+  tabsize=4,
+  numbers=none,
+  xleftmargin=8pt,
+  xrightmargin=8pt,
+  aboveskip=6pt,
+  belowskip=6pt,
+}
+
+% Títulos
+\titleformat{\section}{\large\bfseries\color{accentblue}}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries\color{accentblue}}{}{0em}{}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=accentblue,
+  urlcolor=accentblue
+}
+
+\title{
+  \textbf{Métodos de la clase Vertex}\\[0.4em]
+  \large Algoritmos A* y Backtracking --- ADDA v6\\[0.2em]
+  \normalsize PI4\_2526\_PBase
+}
+\author{}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{Contexto general}
+% ============================================================
+
+En el framework ADDA v6, cada ejercicio modela el espacio de búsqueda como un \textbf{grafo virtual}. Los nodos de ese grafo son instancias de una clase \texttt{Vertex} que implementa la interfaz \texttt{VirtualVertex<V, E, Action>}.
+
+Tanto A* como Backtracking (BT) recorren ese grafo. La clase \texttt{Vertex} se implementa \textbf{una sola vez} y sirve para ambos algoritmos; la diferencia está en qué métodos extra se añaden fuera del vértice:
+
+\begin{itemize}
+  \item \textbf{A*} requiere una clase de \textbf{heurística externa} que estime el coste restante.
+  \item \textbf{BT con semilla greedy} requiere el método \texttt{greedyAction()} dentro del vértice.
+\end{itemize}
+
+El flujo general de decisión es:
+
+\[
+\texttt{start()} \;\longrightarrow\; \texttt{actions()} \;\longrightarrow\; \texttt{neighbor(a)} \;\longrightarrow\; \texttt{isValid()?} \;\longrightarrow\; \texttt{goal()?} \;\longrightarrow\; \texttt{goalHasSolution()}
+\]
+
+% ============================================================
+\section{Métodos para A*}
+% ============================================================
+
+A* construye el grafo virtual y expande nodos ordenados por $f(n) = g(n) + h(n)$, donde $g(n)$ es el coste acumulado y $h(n)$ es la estimación heurística del coste restante.
+
+\subsection{actions()}
+
+Devuelve la lista de \textbf{decisiones posibles} desde el estado actual. A* las usa para generar los nodos vecinos a explorar. Si no hay acciones (o ya se alcanzó el goal), devuelve lista vacía.
+
+\begin{lstlisting}[style=java]
+// Vertex2I -- en que contenedor puedo meter el elemento actual?
+public List<Integer> actions() {
+    if (this.indice().equals(Datos2.getNumElementos())) return List.of();
+    return IntStream.range(0, Datos2.getNumContenedores()).boxed()
+        .filter(x -> !contenedoresCompletos().contains(x))
+        .filter(x -> Datos2.getPuedeUbicarse(this.indice(), x))
+        .filter(x -> Datos2.getTamElemento(this.indice()) <= capRest().get(x))
+        .toList();
+}
+\end{lstlisting}
+
+\subsection{neighbor(action)}
+
+Dado que se toma la acción \texttt{a}, devuelve el \textbf{nuevo estado} resultante. Aquí se actualiza todo lo que cambia al tomar esa decisión. El campo \texttt{indice + 1} indica que pasamos a la siguiente decisión.
+
+\begin{lstlisting}[style=java]
+// Vertex2I -- asigna el elemento actual al contenedor a
+public Vertex2I neighbor(Integer a) {
+    List<Integer> capRest2 = List2.copy(tamanoContenedores);
+    capRest2.set(a, capRest2.get(a) - Datos2.getTamElemento(indice));
+    return Vertex2I.of(indice + 1, capRest2, ...);
+}
+\end{lstlisting}
+
+\subsection{edge(action)}
+
+Crea el objeto \textbf{arista} entre el vértice actual y su vecino. Es un wrapper sobre \texttt{neighbor}. El algoritmo lo usa para construir el \texttt{GraphPath} y calcular $g(n)$.
+
+\begin{lstlisting}[style=java]
+// Vertex2I
+public Edge2 edge(Integer a) {
+    return Edge2.of(this, this.neighbor(a), a);
+}
+\end{lstlisting}
+
+\subsection{goal()}
+
+Devuelve \texttt{true} cuando \textbf{ya no quedan decisiones} por tomar. No indica si la solución es válida, solo que el árbol de decisión ha terminado.
+
+\begin{lstlisting}[style=java]
+// Vertex2I -- se han procesado todos los elementos
+public Boolean goal() {
+    return this.indice() == Datos2.getNumElementos();
+}
+
+// Vertex3I -- se han visitado todos los nodos del grafo
+public Boolean goal() {
+    return this.indice == Datos3.N;
+}
+\end{lstlisting}
+
+\subsection{goalHasSolution()}
+
+Solo se invoca cuando \texttt{goal()} es \texttt{true}. Comprueba si el estado final \textbf{cumple todas las restricciones}, es decir, si lo construido es una solución válida.
+
+\begin{lstlisting}[style=java]
+// Vertex3I -- llego al final, visito >=2 monumentos consecutivos y no supera el tiempo
+public Boolean goalHasSolution() {
+    return this.indice == Datos3.N
+        && this.nConsec >= 2
+        && this.durAcum >= 0.0;
+}
+\end{lstlisting}
+
+\subsection{isValid()}
+
+Poda anticipada: se evalúa \textbf{antes de explorar} un nodo. Si devuelve \texttt{false}, ese nodo y toda su subrama se descartan. Cuanto más restrictivo y barato sea este método, más eficiente es el algoritmo.
+
+\begin{lstlisting}[style=java]
+// CandidatosHyperVertex -- presupuesto no negativo e indice en rango
+public Boolean isValid() {
+    return this.indice >= 0
+        && this.indice <= Datos1.getNumCandidatos()
+        && this.presRest <= Datos1.getPresupuestoMax();
+}
+\end{lstlisting}
+
+\subsection{Heurística (clase externa) --- exclusivo A*}
+
+Estima de forma \textbf{optimista} cuánto queda por ganar/perder hasta el final. Debe ser \textbf{admisible}: nunca sobreestimar si se minimiza, nunca subestimar si se maximiza. A* la usa para ordenar qué nodo explorar primero mediante $f(n) = g(n) + h(n)$.
+
+\begin{lstlisting}[style=java]
+// Heuristic1 -- estimacion optimista del valor de los candidatos restantes
+public static Double heuristic(CandidatosProblem v) {
+    // asume que todos los candidatos restantes aportan como mucho 5 de valoracion
+    return (double)(Datos1.getNumCandidatos() - v.indice()) * 5.0;
+}
+\end{lstlisting}
+
+\textbf{Nota:} una heurística perfecta ($h = \text{coste real restante}$) llevaría a A* directamente a la solución. Una heurística de cero convierte A* en BFS/Dijkstra.
+
+% ============================================================
+\section{Métodos para Backtracking (BT)}
+% ============================================================
+
+BT explora el árbol de decisiones en profundidad, podando ramas y retrocediendo cuando detecta estados inviables o peores que la mejor solución conocida.
+
+\subsection{actions()}
+
+Lista de \textbf{alternativas en el nodo actual}. BT las itera una a una probando cada rama. Misma semántica que en A*.
+
+\begin{lstlisting}[style=java]
+// CandidatosProblem -- contratar o no al candidato actual
+public List<Boolean> actions() {
+    if (indice == Datos1.getNumCandidatos()) return List.of();
+    List<Boolean> lBool = List2.of(false); // siempre se puede no contratar
+    Boolean c = Datos1.getSueldoMin(indice) <= this.presRest
+        && this.candSel.stream()
+            .noneMatch(i -> Datos1.getSonIncompatibles(this.indice(), i));
+    if (c) lBool.add(true);
+    return lBool;
+}
+\end{lstlisting}
+
+\subsection{neighbor(action)}
+
+Genera el \textbf{estado hijo} al tomar la acción \texttt{a}. BT desciende por este hijo. Misma semántica que en A*.
+
+\begin{lstlisting}[style=java]
+// CandidatosProblem -- avanza al siguiente candidato
+public CandidatosProblem neighbor(Boolean a) {
+    IntegerSet sel2 = IntegerSet.copy(candSel);
+    Integer presRest2 = presRest;
+    if (a) {
+        sel2.add(indice);
+        presRest2 = (int)(presRest2 - Datos1.getSueldoMin(indice));
+    }
+    return CandidatosProblem.of(indice + 1, sel2, presRest2);
+}
+\end{lstlisting}
+
+\subsection{edge(action)}
+
+Arista hacia el vecino. BT la usa para construir el \texttt{GraphPath} de la solución encontrada.
+
+\begin{lstlisting}[style=java]
+public Edge2 edge(Integer a) {
+    return Edge2.of(this, this.neighbor(a), a);
+}
+\end{lstlisting}
+
+\subsection{goal()}
+
+Indica que ya no hay más decisiones. BT lo comprueba al descender para saber si ha llegado al final del árbol.
+
+\begin{lstlisting}[style=java]
+public Boolean goal() {
+    return this.indice() == Datos2.getNumElementos();
+}
+\end{lstlisting}
+
+\subsection{goalHasSolution()}
+
+Si \texttt{goal()} es \texttt{true}, decide si la solución construida es válida. BT la usa para actualizar la \textbf{mejor solución conocida} (cota).
+
+\begin{lstlisting}[style=java]
+public Boolean goalHasSolution() {
+    return this.indice == Datos3.N
+        && this.nConsec >= 2
+        && this.durAcum >= 0.0;
+}
+\end{lstlisting}
+
+\subsection{isValid()}
+
+\textbf{Poda principal de BT.} Si devuelve \texttt{false}, corta la rama entera sin explorarla. Es donde reside la mayor parte de la eficiencia de BT: cuanto antes se detecte un estado inviable, más ramas se ahorran.
+
+\begin{lstlisting}[style=java]
+public Boolean isValid() {
+    return this.indice >= 0
+        && this.indice <= Datos1.getNumCandidatos()
+        && this.presRest <= Datos1.getPresupuestoMax();
+}
+\end{lstlisting}
+
+\subsection{greedyAction() --- exclusivo BT con semilla}
+
+Devuelve la \textbf{acción más prometedora} según un criterio voraz. BT la usa una sola vez al inicio (con \texttt{BT.ofGreedy}) para construir una primera solución completa que sirve de \textbf{cota inicial}, permitiendo podar más ramas desde el principio.
+
+\begin{lstlisting}[style=java]
+// Vertex2I -- elige el contenedor con menos hueco libre tras meter el elemento
+// (estrategia "mejor ajuste": minimiza el espacio desperdiciado)
+public Integer greedyAction() {
+    Function<Integer, Integer> f =
+        a -> capRest().get(a) - Datos2.getTamElemento(indice);
+    return actions().stream()
+        .min(Comparator.comparing(a -> f.apply(a)))
+        .get();
+}
+\end{lstlisting}
+
+% ============================================================
+\section{Tabla resumen}
+% ============================================================
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabularx}{\textwidth}{>{\bfseries}l X c c}
+\toprule
+\rowcolor{tabheader}
+\textbf{Método} & \textbf{Qué hace} & \textbf{A*} & \textbf{BT} \\
+\midrule
+\texttt{actions()} & Lista de acciones/decisiones posibles desde el estado actual & \checkmark & \checkmark \\
+\texttt{neighbor(a)} & Devuelve el estado siguiente al tomar la acción \texttt{a} & \checkmark & \checkmark \\
+\texttt{edge(a)} & Crea la arista hacia el vecino (wrapper de \texttt{neighbor}) & \checkmark & \checkmark \\
+\texttt{goal()} & Indica si ya no quedan decisiones por tomar & \checkmark & \checkmark \\
+\texttt{goalHasSolution()} & Comprueba si el estado final es una solución válida & \checkmark & \checkmark \\
+\texttt{isValid()} & Poda: descarta el nodo y su subrama si devuelve \texttt{false} & \checkmark & \checkmark \\
+\midrule
+\textbf{Heurística} (clase externa) & Estima $h(n)$: coste optimista restante hasta la solución & \textbf{exclusivo} & --- \\
+\texttt{greedyAction()} & Acción voraz para construir la cota inicial de BT & --- & \textbf{exclusivo*} \\
+\bottomrule
+\end{tabularx}
+\caption{Métodos comunes y exclusivos de cada algoritmo. (*) Solo necesario con \texttt{BT.ofGreedy()}.}
+\end{table}
+
+\bigskip
+\noindent\textbf{Conclusión:} el \texttt{Vertex} se implementa una sola vez y es compatible con ambos algoritmos. Lo que diferencia A* de BT no está dentro del vértice, sino en los elementos externos: la \textbf{heurística} para A* y \textbf{greedyAction} para BT con semilla.
+
+\end{document}

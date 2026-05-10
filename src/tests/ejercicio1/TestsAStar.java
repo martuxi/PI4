@@ -41,7 +41,7 @@ public class TestsAStar {
 				EGraph<Vertex1, Edge1> graph =
 						EGraph.virtual(start)
 						.pathType(PathType.Sum)
-						.type(Type.Min)
+						.type(Type.Max)
 						.edgeWeight(x -> x.weight())
 						.heuristic(Heuristic1::heuristic)
 						.build();

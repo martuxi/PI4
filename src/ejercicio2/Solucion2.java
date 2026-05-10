@@ -1,8 +1,11 @@
 package ejercicio2;
 
 import java.util.List;
+
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.jgrapht.GraphPath;
 
 import ejercicio2.Datos2.Contenedor;
 import ejercicio2.Datos2.Elemento;
@@ -19,6 +22,10 @@ public class Solucion2 {
 		return new Solucion2(ls);
 	}
 
+	public static Solucion2 of(GraphPath<Vertex2,Edge2> path) {
+		List<Integer> la = path.getEdgeList().stream().map(e->e.action()).toList();
+		return Solucion2.create(la);
+	}
 	private Map<Contenedor, List<Elemento>> distribucion;
 
 	private Solucion2(List<Integer> ls) {  // Lista de acciones/alternativas

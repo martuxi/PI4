@@ -1,8 +1,8 @@
 package ejercicio1;
 
 import java.util.List;
+
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import us.lsi.common.IntegerSet;
@@ -43,7 +43,7 @@ public record CandidatosProblem (Integer indice, IntegerSet candSel, Integer pre
 		return CandidatosProblem.of(indice+1,sel2, presRest2);
 	}
 	public Double heuristic () {
-		return (Double) (Datos1.getNumCandidatos()-this.indice()*5.0);
+		return (double) (Datos1.getNumCandidatos()-this.indice())*5.0;
 	}
 	
 	public Boolean goal() {
