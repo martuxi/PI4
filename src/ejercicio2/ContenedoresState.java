@@ -32,10 +32,10 @@ public class ContenedoresState {
 
 	
 	public void forward(Integer a) {
-		acumulado += actual.capRest().get(a) - Datos2.getTamElemento(actual.indice()) == 0 ? 1.: 0.;
+		acumulado += actual.tamañoContenedores().get(a) - Datos2.getTamElemento(actual.indice()) == 0 ? 1.: 0.;
 		acciones.add(a);
 		anteriores.add(actual);
-		actual = actual.neighbor(a);
+		actual = (Vertex2I) actual.neighbor(a);
 	}
 	
 	
@@ -43,7 +43,7 @@ public class ContenedoresState {
 		int last = acciones.size()-1;
 		Vertex2I prob_ant = (Vertex2I) anteriores.get(last);
 		
-		acumulado -= prob_ant.capRest().get(acciones.get(last)) - Datos2.getTamElemento(prob_ant.indice()) == 0 ? 1.: 0.;
+		acumulado -= prob_ant.tamañoContenedores().get(acciones.get(last)) - Datos2.getTamElemento(prob_ant.indice()) == 0 ? 1.: 0.;
 		acciones.remove(last);
 		anteriores.remove(last);
 		actual = prob_ant;
@@ -54,7 +54,7 @@ public class ContenedoresState {
 	}
 	
 	public Double cota(Integer a) {
-		Double weight = actual.capRest().get(a) - Datos2.getTamElemento(actual.indice()) == 0 ? 1.: 0.;
+		Double weight = actual.tamañoContenedores().get(a) - Datos2.getTamElemento(actual.indice()) == 0 ? 1.: 0.;
 		return acumulado + weight + Heuristic2.heuristic(actual.neighbor(a), null, null);
 	}
 	

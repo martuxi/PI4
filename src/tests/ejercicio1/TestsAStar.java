@@ -1,6 +1,7 @@
 package tests.ejercicio1;
 
 import java.io.IOException;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -46,7 +47,7 @@ public class TestsAStar {
 						.heuristic(Heuristic1::heuristic)
 						.build();
 						
-				AStar<Vertex1, Edge1,?> aStar = AStar.ofGreedy(graph);
+				AStar<Vertex1, Edge1,?> aStar = AStar.of(graph);
 				
 				GraphPath<Vertex1, Edge1> gp = aStar.search().get();
 				

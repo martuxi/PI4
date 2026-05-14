@@ -39,22 +39,22 @@ public class TestsPD {
 			// Algoritmo PD
 			
 			System.out.println(p);				
-			SimpleVirtualHyperGraph<ContenedoresHyperVertex,ContenedoresHyperEdge,Boolean> graph3 = 
+			SimpleVirtualHyperGraph<ContenedoresHyperVertex, ContenedoresHyperEdge, Integer> graph3 = 
 					SimpleVirtualHyperGraph.simpleVirtualHyperGraph(p);
 			
-			PD<ContenedoresHyperVertex, ContenedoresHyperEdge, Boolean,List<Integer>> a = 
+			PD<ContenedoresHyperVertex, ContenedoresHyperEdge, Integer, List<Integer>> a = 
 					PD.dynamicProgrammingSearch(graph3,PDType.Max);
 			
 			a.withGraph = true;
 			a.search();
 			
 			//VISTA DEBUG: Mapa de 4 entradas, con todos los valores a null --> No funciona el SP<Boolean, CandidatosHyperEdge> ?? ¿Por qué?
-			Map<ContenedoresHyperVertex, Sp<Boolean, ContenedoresHyperEdge>> s = a.getSolutionsTree();
+			Map<ContenedoresHyperVertex, Sp<Integer, ContenedoresHyperEdge>> s = a.getSolutionsTree();
 			
 			if (s.get(p) == null) {
 				System.out.println("No hay solución");
 			} else {			
-				GraphTree<ContenedoresHyperVertex, ContenedoresHyperEdge, Boolean, List<Integer>> tree = 
+				GraphTree<ContenedoresHyperVertex, ContenedoresHyperEdge, Integer, List<Integer>> tree = 
 						GraphTree.graphTree(p,s);
 
 				System.out.println(tree.solution());

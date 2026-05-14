@@ -1,84 +1,87 @@
 package ejercicio1;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
+import java.util.stream.IntStream;
 
-import us.lsi.common.List2;
+public record Vertex1I(Integer indice, Double presRest, Set<Integer> candSel, Set<String> cualidadesCubrir) implements Vertex1 {
 
-public record Vertex1I(Integer indice, Set<Integer> candSel, Integer presRest, Set<String> cualidadesCub) implements Vertex1  {
-
-	public static Vertex1 of (Integer i, Set<Integer> sel, Integer pR, Set<String> c) {
-		return new Vertex1I(i,sel,pR,c);
+	public static Vertex1I start() {
+		return Vertex1I.of(0, Datos1.getPresupuestoMax()*1.0, new HashSet<Integer> (), new HashSet<String>());
 	}
 	
-	public static Vertex1 start() {
-		return new Vertex1I(0,new HashSet<Integer>(),Datos1.getPresupuestoMax(),new HashSet<String> ());
+	public static Vertex1I of(Integer a, Double pM, Set<Integer> cand, Set<String> cual) {
+		return new Vertex1I (a,pM, cand, cual);
 	}
 	
 	public Boolean goal() {
-		//Queremos maximizar el número de candidatos que contratemos
 		return this.indice() == Datos1.getNumCandidatos();
 	}
 	
 	public Boolean goalHasSolution() {
 		//Tiene solución si todas las cualidades han sido cubiertas 
 		Set<String> s = new HashSet<>(Datos1.getCualidades()); 
-		Set <String> cc = new HashSet<> (cualidadesCub);
+		Set <String> cc = new HashSet<> (cualidadesCubrir);
 		s.removeAll(cc);
-		Boolean c2  = false; 
+		Boolean c2  = true;
+		Boolean c3 = false;
 		for(Integer a: candSel) { 
 			for(Integer b: candSel) { 
-				c2 = Datos1.getSonIncompatibles(b, a) || Datos1.getSonIncompatibles(a, b); 
-				if(c2) return false; 
+				c2 = Datos1.getSonIncompatibles(b, a) || Datos1.getSonIncompatibles(a, b);
+				c3 = Datos1.getSueldoMin(a) >= presRest;
+				if(c2 && c3) return false; 
 			}
 		}
 		
-		return s.isEmpty(); 
-	}
-	@Override
-	public List<Integer> actions() {
-		// TODO Auto-generated method stub
-		if (indice == Datos1.getNumCandidatos()) return List.of();
-
-		List<Integer> lBool = List2.of(0);
-		/*Si el sueldo del candidato no me supera el presupuesto restante
-		y no es incompatible con ninguna otro candidato que ya haya contratado*/
-		Boolean c = Datos1.getSueldoMin(indice) <= this.presRest &&
-				this.candSel.stream()
-				.noneMatch(i -> Datos1.getSonIncompatibles(this.indice(), i) && Datos1.getSonIncompatibles(i, this.indice()));
-		if (c) 	//Si se me cumplen ambas condiciones, añadimos 'true'
-			lBool.add(1);
-		return lBool;
-		
+		return s.isEmpty();
 	}
 	
 	@Override
-	public Vertex1 neighbor(Integer a) {
-		//Calculamos el siguiente candidato a seleccionar, en caso de que exista
-		Set <Integer> sel2 = new HashSet<Integer> (candSel);
-		Integer pRest2 = presRest; 
-		Set<String> cual2 = new HashSet<String> (cualidadesCub);
-		if (a>0) {
-			sel2.add(indice);
-			pRest2 = (int) (pRest2 - Datos1.getSueldoMin(indice));
-			cual2.addAll(Datos1.getCandidato(indice).cualidades());
+	public List<Integer> actions() {
+		// TODO Auto-generated method stub
+		List <Integer> alternativas = new ArrayList<>();
+		if (this.indice() == Datos1.getNumCandidatos()) return List.of(); 
+		else if (this.indice()>=0) {
+			if (this.presRest()>= Datos1.getSueldoMin(this.indice()) && this.candSel().stream().noneMatch(x -> Datos1.getSonIncompatibles(x, this.indice()))) {
+				alternativas.add(1);
+			}
+		
+			alternativas.add(0);
 		}
-		return Vertex1I.of(indice+1,sel2, pRest2, cual2);
+		return alternativas;
+	}
+
+	@Override
+	public Vertex1 neighbor(Integer a) {
+		Double copPres = Double.valueOf(presRest);
+		Set<Integer> copCand = new HashSet<Integer> (candSel);
+		Set<String> copCual = new HashSet<String> (cualidadesCubrir);
+		if (a > 0) {
+			copPres = copPres - Datos1.getSueldoMin(indice);
+			copCand.add(indice);
+			copCual.addAll(Datos1.getCualidades(indice));
+		}
+		return new Vertex1I(indice+1, copPres, copCand, copCual);
 	}
 
 	@Override
 	public Edge1 edge(Integer a) {
-		return Edge1.of(this, this.neighbor(a), a);
+		// TODO Auto-generated method stub
+		return Edge1.of(this, this.neighbor(a),a);
 	}
 
-	@Override
-	public String toString() {
-		Locale.setDefault(Locale.of("en","US"));
-		return String.format("%d,%d,%.0f",indice, cualidadesCub.size(), Heuristic1.heuristic(this, v -> v.goal(), null));
-	}
+	//EXCLUSIVO PARA BT 
+	public Integer greedyAction() {
+		 boolean puedeAfrontar = this.presRest() >= Datos1.getSueldoMin(indice);
+	      boolean sinIncompat = this.candSel().stream()
+	          .noneMatch(x -> Datos1.getSonIncompatibles(x, indice) || Datos1.getSonIncompatibles(indice, x));
+	      boolean aportaCualidades = Datos1.getCualidades(indice).stream()
+	          .anyMatch(q -> !this.cualidadesCubrir().contains(q));
 
- 
+	      if (puedeAfrontar && sinIncompat && aportaCualidades) return 1;
+	      return 0;
+	}
 	
 }

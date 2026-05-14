@@ -39,6 +39,7 @@ public record Vertex2I(Integer indice, List <Integer> tamañoContenedores, List<
 		
 		return l;
 	}
+	
 	public Boolean hasSolution() {
 		//Tendrá solución si hemos llenado todos los contenedores 
 		 return this.tamañoContenedores.size() ==0;

@@ -6,11 +6,13 @@ import us.lsi.graphs.virtual.VirtualVertex;
 
 public interface Vertex2 extends VirtualVertex<Vertex2, Edge2, Integer> {
 	
-	Integer indice();
+Integer indice();
 	
 	List<Integer> contenedoresCompletos();
 	
 	List<Integer> tamañoContenedores();
+
+	List<Integer> capRest();
 	
 	
 

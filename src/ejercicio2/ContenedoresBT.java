@@ -22,7 +22,7 @@ public class ContenedoresBT {
 			}
 		} else if(!estado.esTerminal()){
 			for (Integer a: estado.alternativas()) {
-//				if (estado.cota(a) <= mejorValor) {  // Estamos maximizando
+//				if (estado.cota(a) <= mejorValor) {  // Estamos minimizando
 				if (estado.cota(a) > mejorValor) {  // Estamos maximizando
 					estado.forward(a);
 					bt_search();

@@ -4,28 +4,32 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public record ContenedoresHyperVertex(Integer indice, List<Integer> tamContenedores, List<Integer> contCompletos) implements ContenedoresHyperVertexI {
+import ejercicio3.Datos3;
+
+public record ContenedoresHyperVertex(Integer indice, List<Integer> tamContenedores) implements ContenedoresHyperVertexI {
 
 	public static ContenedoresHyperVertex initial() {
-		List <Integer> tamC = IntStream.range(0, Datos2.getNumContenedores()).boxed().map(x -> Datos2.getTamContenedor(x)).toList();
-		return new ContenedoresHyperVertex(0, tamC , new ArrayList<>());
+		List<Integer> tamC = IntStream.range(0, Datos2.getNumContenedores()).boxed().map(x -> Datos2.getTamContenedor(x)).toList();
+		return new ContenedoresHyperVertex(0, tamC);
 	}
 	
-	public static ContenedoresHyperVertex of(Integer i, List<Integer> tamCont, List<Integer> contComp) {
-		return new ContenedoresHyperVertex(i,tamCont,contComp);
+	public static ContenedoresHyperVertex of(Integer i, List<Integer> tamCont) {
+		return new ContenedoresHyperVertex(i,tamCont);
 	}
 	
-	public List<Boolean> actions() {
+	public List<Integer> actions() {
 		if (this.indice == Datos2.getNumContenedores()) return List.of();
-		List <Boolean> alternativas = new ArrayList<> ();
-		for (int i = 0; i <= Datos2.getNumElementos(); i++) {
-			if (Datos2.getPuedeUbicarse(i, indice)) {
-				alternativas.add(true);
+		List <Integer> alternativas = new ArrayList<> ();
+		for (int i = 0; i < Datos2.getNumElementos(); i++) {
+			if (Datos2.getPuedeUbicarse(i, indice) || Datos2.getTamElemento(i) <= this.tamContenedores().get(this.indice)) {
+				alternativas.add(1);
 			}
 			else {
-				alternativas.add(false);
+				alternativas.add(0);
 				
 			}
 		}
@@ -36,56 +40,57 @@ public record ContenedoresHyperVertex(Integer indice, List<Integer> tamContenedo
 	@Override
 	public Boolean isBaseCase() {
 		// TODO Auto-generated method stub
-		return (this.indice == Datos2.getNumContenedores() || this.contCompletos.size() == 0);
+		Boolean elemUbi = false; 
+		for (int i  = indice; i < Datos2.getNumElementos(); i++) {
+			for (int j = 0; j < Datos2.getNumContenedores(); j++) {
+				if (Datos2.getTamElemento(i) <= tamContenedores.get(j) && Datos2.getPuedeUbicarse(i, j)) {
+					elemUbi = true;
+					break; 
+				}
+			}
+			
+		}
+		
+		return indice == Datos2.getNumElementos() || !elemUbi;	
+	
+		
 	}
 
 	@Override
 	public Double baseCaseWeight() {
 		// TODO Auto-generated method stub
-		return !this.contCompletos.isEmpty() ? 0.: null;
+		return !this.contCompletos().isEmpty() ? 0.: null;
 	}
 
-	@Override
-	public Boolean isValid() {
-		// TODO Auto-generated method stub
-		return (indice>= 0 || indice <= Datos2.getNumContenedores() || IntStream.range(0, Datos2.getNumContenedores()).boxed().filter(x -> Datos2.getPuedeUbicarse(x, this.indice)).equals(true));
-		
-	}
 
 	@Override
 	public List<Integer> baseCaseSolution() {
 		List <Integer> s = new ArrayList<Integer> ();
-		return !this.contCompletos.isEmpty() ? s : null;
+		return !contCompletos().isEmpty() ? s : null;
 	}
 
-	public List<Integer> solution(Boolean a, List<List<Integer>> solutions) {
+	public List<Integer> solution(Integer a, List<List<Integer>> solutions) {
 		// TODO Auto-generated method stub
 		List<Integer> s = solutions.get(0);
-		if (a) {
-			s.add(this.indice);
+		if (a> Datos2.getNumContenedores()) {
+			s.set(indice, a);
 		}
 		return s;
 	}
 
 	@Override
-	public List<ContenedoresHyperVertex> neighbors(Boolean a) {
+	public List<ContenedoresHyperVertex> neighbors(Integer a) {
 		// TODO Auto-generated method stub
-		List <Integer> contCopia = new ArrayList<Integer> (contCompletos);
-		List <Integer> tamCopia = new ArrayList<Integer> (tamContenedores);
-		if (a) {
-			for (int i  = 0; i < Datos2.getNumElementos(); i++) {
-				if (tamCopia.get(this.indice) - Datos2.getTamElemento(i) == 0 && Datos2.getPuedeUbicarse(i, indice)) {
-					contCopia.add(this.indice);
-				}
-			}
-			
-			tamCopia.add(Datos2.getTamContenedor(indice+1));
+		List <Integer> tamCopia = new ArrayList <Integer> (tamContenedores);
+		if (a < Datos2.getNumContenedores()) {
+			tamCopia.set(a, tamCopia.get(a) - Datos2.getTamElemento(indice));
 		}
-		return List.of(ContenedoresHyperVertex.of(indice+1, tamCopia, contCopia));
+		
+		return List.of(ContenedoresHyperVertex.of(indice+1, tamCopia));
 	}
 
 	@Override
-	public ContenedoresHyperEdge edge(Boolean a) {
+	public ContenedoresHyperEdge edge(Integer a) {
 		// TODO Auto-generated method stub
 		List<ContenedoresHyperVertex> targets = this.neighbors(a);
 		return ContenedoresHyperEdge.of(this, targets, a);
@@ -97,6 +102,16 @@ public record ContenedoresHyperVertex(Integer indice, List<Integer> tamContenedo
 		return solution.size();
 	}
 
+	public Set<Integer> contCompletos() {
+		return IntStream.range(0,Datos2.getNumContenedores()).boxed().filter( j -> tamContenedores.get(j).equals(0)).collect(Collectors.toSet());
+	}
+
+	@Override
+	public Boolean isValid() {
+		// TODO Auto-generated method stub
+		return (indice >=  0 || indice <= Datos2.getNumContenedores()) && this.contCompletos().stream()
+				.allMatch(x -> Datos2.getTamContenedor(x)>= 0 || contCompletos().contains(x));
+	}
 	
 
 }

@@ -2,6 +2,7 @@ package tests.ejercicio2;
 
 import java.io.IOException;
 
+
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -46,7 +47,7 @@ public class TestsAStar {
 
 			System.out.println("\n\n#### Ej3 Algoritmo Astar ####");
 			
-			AStar<Vertex2, Edge2,?> aStar = AStar.ofGreedy(graph);
+			AStar<Vertex2, Edge2,?> aStar = AStar.of(graph);
 			
 			List<Integer> gp_as = aStar.search().get().getEdgeList().stream().map(x -> x.action())
 					.collect(Collectors.toList()); // getEdgeList();

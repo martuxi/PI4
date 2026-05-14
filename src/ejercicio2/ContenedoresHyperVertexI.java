@@ -5,11 +5,10 @@ import java.util.Set;
 
 import us.lsi.hypergraphs.VirtualHyperVertex;
 
-public interface ContenedoresHyperVertexI extends VirtualHyperVertex<ContenedoresHyperVertex,ContenedoresHyperEdge, Boolean, List<Integer>> {
+public interface ContenedoresHyperVertexI extends VirtualHyperVertex<ContenedoresHyperVertex,ContenedoresHyperEdge, Integer, List<Integer>> {
 	
 	Integer indice();
-	List<Integer> tamContenedores();
-	List<Integer> contCompletos();
+	List <Integer> tamContenedores();
 	
 	
 }

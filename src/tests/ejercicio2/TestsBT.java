@@ -28,7 +28,7 @@ public class TestsBT {
 		// Set up
 				Locale.setDefault(Locale.of("en", "US"));
 
-				for (Integer id_fichero = 1; id_fichero < 3; id_fichero++) {
+				for (Integer id_fichero = 1; id_fichero < 4; id_fichero++) {
 
 					Datos2.iniDatos("datos_entrada/ejercicio2/DatosEntrada" + id_fichero + ".txt");
 					System.out.println("\n\n>\tResultados para el test " + id_fichero + "\n");
@@ -36,7 +36,7 @@ public class TestsBT {
 					
 					// V�rtices clave
 
-					Vertex2 start = Vertex2I.start();
+					Vertex2I start = Vertex2I.start();
 
 					// Grafo
 
@@ -44,7 +44,7 @@ public class TestsBT {
 							EGraph.virtual(start)
 							.pathType(PathType.Last)
 							.type(Type.Max)
-							.vertexWeight(x-> (double) x.contenedoresCompletos().size())
+							.vertexWeight(x-> (double) x.capRest().size())
 							.build();
 
 					Boolean conVoraz = false;
