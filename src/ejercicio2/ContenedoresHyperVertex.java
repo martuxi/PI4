@@ -1,6 +1,7 @@
 package ejercicio2;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -22,17 +23,15 @@ public record ContenedoresHyperVertex(Integer indice, List<Integer> tamContenedo
 	}
 	
 	public List<Integer> actions() {
-		if (this.indice == Datos2.getNumContenedores()) return List.of();
+		if (this.indice == Datos2.getNumElementos()) return List.of();
 		List <Integer> alternativas = new ArrayList<> ();
-		for (int i = 0; i < Datos2.getNumElementos(); i++) {
-			if (Datos2.getPuedeUbicarse(i, indice) || Datos2.getTamElemento(i) <= this.tamContenedores().get(this.indice)) {
-				alternativas.add(1);
-			}
-			else {
-				alternativas.add(0);
-				
+		for (int i = 0; i < Datos2.getNumContenedores(); i++) {
+			if (Datos2.getPuedeUbicarse(indice, i) && Datos2.getTamElemento(indice) <= this.tamContenedores().get(i)) {
+				alternativas.add(i);
 			}
 		}
+		
+		alternativas.add(Datos2.getNumContenedores());
 		
 		return alternativas;
 	}
@@ -65,14 +64,14 @@ public record ContenedoresHyperVertex(Integer indice, List<Integer> tamContenedo
 
 	@Override
 	public List<Integer> baseCaseSolution() {
-		List <Integer> s = new ArrayList<Integer> ();
+		List <Integer> s = new ArrayList<Integer> (Collections.nCopies(Datos2.getNumElementos(), Datos2.getNumContenedores()));
 		return !contCompletos().isEmpty() ? s : null;
 	}
 
 	public List<Integer> solution(Integer a, List<List<Integer>> solutions) {
 		// TODO Auto-generated method stub
 		List<Integer> s = solutions.get(0);
-		if (a> Datos2.getNumContenedores()) {
+		if (a < Datos2.getNumContenedores()) {
 			s.set(indice, a);
 		}
 		return s;

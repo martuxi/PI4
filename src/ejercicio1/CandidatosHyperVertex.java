@@ -47,6 +47,8 @@ public record CandidatosHyperVertex (Integer indice, Set<Integer> cualidadesACub
 			alternativas.add(true);
 		}
 		
+		alternativas.add(false);
+		
 		return alternativas;
 	}
 
